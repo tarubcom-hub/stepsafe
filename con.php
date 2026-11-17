@@ -18,7 +18,57 @@
         }
 
         .container {
+            position: relative;
+            z-index: 1;
             text-align: center;
+            transform: scale(1.5);
+        }
+
+        .finger-pop-zone {
+            position: fixed;
+            z-index: 0;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .popping-finger {
+            position: absolute;
+            width: 26px;
+            height: 66px;
+            border: 3px solid #222;
+            border-bottom: 0;
+            border-radius: 15px 15px 0 0;
+            background: #ffdbac;
+            box-shadow: 0 0 10px rgba(0, 238, 255, .45), 0 0 14px rgba(255, 35, 190, .4);
+            opacity: 0;
+            transform-origin: center bottom;
+            animation: fingerPop .9s steps(1, end) infinite backwards;
+        }
+
+        .popping-finger::before {
+            content: '';
+            position: absolute;
+            top: 52px;
+            left: -14px;
+            z-index: -1;
+            width: 48px;
+            height: 34px;
+            border: 3px solid #222;
+            border-radius: 8px 8px 12px 12px;
+            background: #ffdbac;
+        }
+
+        .popping-finger::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 5px;
+            width: 10px;
+            height: 14px;
+            border: 1px solid rgba(0, 0, 0, .2);
+            border-radius: 4px 4px 2px 2px;
+            background: rgba(255, 255, 255, .4);
         }
 
         /* The Hand Base */
@@ -30,6 +80,26 @@
             border-radius: 30px 30px 40px 40px;
             box-shadow: inset -10px -10px 0px rgba(0,0,0,0.1), 0 20px 30px rgba(0,0,0,0.5);
             border: 4px solid #222;
+            animation: handGlitch 0.5s steps(1, end) infinite;
+        }
+
+        .hand::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            z-index: 2;
+            border: 4px solid transparent;
+            border-radius: 30px 30px 40px 40px;
+            background: linear-gradient(
+                transparent 0 16%,
+                rgba(0, 238, 255, .75) 16% 22%,
+                transparent 22% 55%,
+                rgba(255, 35, 190, .75) 55% 61%,
+                transparent 61%
+            );
+            opacity: 0;
+            pointer-events: none;
+            animation: glitchSlices 0.5s steps(1, end) infinite;
         }
 
         /* Folded side fingers & thumb details */
@@ -57,9 +127,20 @@
             border: 4px solid #222;
             border-bottom: none;
             z-index: -1;
-            
-            /* CSS Animation for smooth bouncing/moving */
-            animation: extendFinger 1.2s ease-in-out infinite alternate;
+            animation: extendFinger 0.3s ease-in-out infinite alternate,
+                fingerGlitch 0.5s steps(1, end) infinite;
+        }
+
+        .middle-finger::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 4px solid rgba(0, 238, 255, .8);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            opacity: 0;
+            pointer-events: none;
+            animation: fingerSlice 0.5s steps(1, end) infinite;
         }
 
         /* Finger nail detail */
@@ -95,53 +176,102 @@
             }
         }
 
-        /* Interactive Speed Controls */
-        .controls {
-            margin-top: 40px;
+        @keyframes handGlitch {
+            0%, 55%, 100% { transform: translate(0); filter: none; }
+            60% { transform: translate(-4px, 1px); filter: drop-shadow(3px 0 #00eeff); }
+            72% { transform: translate(4px, -1px); filter: drop-shadow(-3px 0 #ff23be); }
+            84% { transform: translate(-2px); filter: none; }
         }
 
-        button {
-            background-color: #ff4757;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin: 0 5px;
+        @keyframes glitchSlices {
+            0%, 55%, 100% { opacity: 0; transform: translateX(0); clip-path: inset(0); }
+            60% { opacity: 1; transform: translateX(-6px); clip-path: inset(18% 0 68%); }
+            72% { opacity: .8; transform: translateX(5px); clip-path: inset(55% 0 26%); }
+            84% { opacity: .9; transform: translateX(-3px); clip-path: inset(78% 0 10%); }
         }
 
-        button:hover {
-            background-color: #ff6b81;
+        @keyframes fingerGlitch {
+            0%, 55%, 100% { filter: none; }
+            60% { filter: drop-shadow(3px 0 #00eeff); }
+            72% { filter: drop-shadow(-3px 0 #ff23be); }
+            84% { filter: none; }
         }
+
+        @keyframes fingerSlice {
+            0%, 55%, 100% { opacity: 0; transform: translateX(0); }
+            60% { opacity: .9; transform: translateX(-5px); }
+            72% { opacity: .8; transform: translateX(4px); }
+            84% { opacity: 0; transform: translateX(0); }
+        }
+
+        @keyframes fingerPop {
+            0%, 30%, 100% {
+                opacity: .5;
+                transform: translate(-50%, 0) scale(.25) rotate(var(--rotation));
+            }
+            40%, 58% {
+                opacity: .95;
+                transform: translate(-50%, 0) scale(var(--scale)) rotate(var(--rotation));
+            }
+            42%, 46%, 50%, 54% {
+                transform: translate(calc(-50% + 6px), 0) scale(var(--scale))
+                    rotate(calc(var(--rotation) + 8deg));
+            }
+            44%, 48%, 52%, 56% {
+                transform: translate(calc(-50% - 6px), 0) scale(var(--scale))
+                    rotate(calc(var(--rotation) - 8deg));
+            }
+            68% {
+                opacity: .5;
+                transform: translate(-50%, 0) scale(.25) rotate(var(--rotation));
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .hand,
+            .hand::after,
+            .middle-finger,
+            .middle-finger::before {
+                animation: none;
+            }
+
+            .finger-pop-zone {
+                display: none;
+            }
+        }
+
     </style>
 </head>
 <body>
 
+    <div class="finger-pop-zone" id="finger-pop-zone" aria-hidden="true"></div>
     <div class="container">
         <!-- The Visual Hand structure -->
         <div class="hand">
             <div class="middle-finger" id="finger"></div>
         </div>
         <div class="wrist"></div>
-
-        <!-- JavaScript Controls -->
-        <div class="controls">
-            <button onclick="changeSpeed('0.3s')">Fast</button>
-            <button onclick="changeSpeed('1.2s')">Normal</button>
-            <button onclick="changeSpeed('3s')">Slow</button>
-        </div>
     </div>
 
     <script>
-        // Simple JavaScript function to dynamically change the CSS animation duration
-        function changeSpeed(speed) {
-            document.getElementById('finger').style.animationDuration = speed;
-        }
+        const fingerPopZone = document.getElementById('finger-pop-zone');
+        const fingerPositions = [
+            [6, 14], [18, 33], [8, 60], [15, 84], [31, 12], [29, 82],
+            [40, 24], [41, 75], [59, 15], [61, 82], [72, 28], [78, 60],
+            [88, 16], [93, 43], [85, 83], [68, 90], [34, 47], [92, 73]
+        ];
+
+        fingerPositions.forEach(([left, top], index) => {
+            const finger = document.createElement('span');
+            finger.className = 'popping-finger';
+            finger.style.left = `${left}%`;
+            finger.style.top = `${top}%`;
+            finger.style.setProperty('--rotation', `${(index % 2 ? 1 : -1) * (8 + index % 4 * 5)}deg`);
+            finger.style.setProperty('--scale', `${0.4 + index % 6 * 0.3}`);
+            finger.style.animationDelay = `${index * 0.05}s`;
+            fingerPopZone.append(finger);
+        });
     </script>
 
 </body>
 </html>
-
